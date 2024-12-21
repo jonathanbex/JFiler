@@ -41,11 +41,6 @@ Log in using the admin username and password specified in the `appsettings.json`
 - **Add Drives**: Use the "Add Drive" form to add new drives by specifying the drive path.
 - **Remove Drives**: Click the "Remove" button next to a drive to delete it from the configuration.
 
-### Example Screenshot
-![JFiler Drive Management](https://via.placeholder.com/800x400?text=JFiler+Drive+Management)
-
-*(Replace the placeholder URL above with an actual screenshot of the application.)*
-
 ## Customizing `appsettings.json`
 You can directly edit the `appsettings.json` file to configure your settings. For example:
 ```json

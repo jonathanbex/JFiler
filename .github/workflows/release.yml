@@ -29,7 +29,8 @@ jobs:
         run: dotnet build JFiler.sln --configuration Release /clp:ErrorsOnly
 
       - name: dotnet publish
-        run: dotnet publish JFiler.sln -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -o "${{env.DOTNET_ROOT}}/release" -p:DebugType=None
+        run: dotnet publish JFiler.sln -c Release -r win-x64 --self-contained true -o "${{env.DOTNET_ROOT}}/release" -p:DebugType=None
+
      
       - name: Create appsettings.json in Release Directory
         shell: pwsh
@@ -67,7 +68,7 @@ jobs:
       - name: Zip Release Assets
         shell: pwsh
         run: |
-          Compress-Archive -Path "${{env.DOTNET_ROOT}}/release/*" -DestinationPath "${{env.DOTNET_ROOT}}/release/JDiscordBot_${{ env.RELEASE_TAG }}.zip"
+          Compress-Archive -Path "${{env.DOTNET_ROOT}}/release/*" -DestinationPath "${{env.DOTNET_ROOT}}/release/JFiler_${{ env.RELEASE_TAG }}.zip"
 
       - name: Upload Release Asset with gh CLI
         env:

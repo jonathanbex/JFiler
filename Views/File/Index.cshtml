@@ -32,7 +32,7 @@
 </div>
 
 <script>
-    // State variables
+
     let currentPage = 1;
     let pageSize = 10;
     let currentSearchTerm = '';
@@ -54,10 +54,10 @@
             }
         });
 
-        // Search Logic
+  
         searchButton.addEventListener('click', executeSearch);
 
-        // Search Logic: Press Enter
+
         searchBox.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault(); // Prevent form submission or default behavior
@@ -69,14 +69,14 @@
         loadFileGrid();
     });
 
-    // Execute Search
+
     const executeSearch = () => {
         currentSearchTerm = document.getElementById('searchBox').value.trim();
         currentPage = 1;
         loadFileGrid();
     };
 
-    // Load File Grid
+
     const loadFileGrid = async () => {
         try {
             const response = await fetch('/File/GetFiles', {
@@ -141,7 +141,7 @@
         return pages;
     };
 
-    // Change Page
+  
     const changePage = (page) => {
         currentPage = page;
         loadFileGrid();

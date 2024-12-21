@@ -29,7 +29,7 @@ jobs:
         run: dotnet build JFiler.sln --configuration Release /clp:ErrorsOnly
 
       - name: dotnet publish
-        run: dotnet publish JFiler.sln -c Release -r win-x64 --self-contained true -o "${{env.DOTNET_ROOT}}/release" -p:DebugType=None
+        run: dotnet publish JFiler.sln -c Release -r win-x64 --self-contained false -o "${{env.DOTNET_ROOT}}/release" -p:DebugType=None
 
      
       - name: Create appsettings.json in Release Directory

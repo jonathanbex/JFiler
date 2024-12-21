@@ -70,3 +70,6 @@ Contributions are welcome! Feel free to fork the repository, make changes, and s
 ## License
 This project is licensed under the [MIT License](LICENSE).
 
+# Ui
+I decided to make a very spartan ui since I was tired of javascript frameworks :D 
+

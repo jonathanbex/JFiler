@@ -1,3 +1,5 @@
+using JFiler.Domain.Repository;
+using JFiler.Domain.Repository.Implementation;
 using JFiler.Domain.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IStorageService, StorageService>();
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IGlobalLinkRepository, GlobalLinkRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

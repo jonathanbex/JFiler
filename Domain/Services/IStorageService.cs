@@ -8,6 +8,6 @@ namespace JFiler.Domain.Services
     Task<IEnumerable<FileModel>> GetFilesAsync(string userDirectory);
     Task UploadFileAsync(string userDirectory, IFormFile file, IProgress<double>? progress = null);
     Task DeleteFileAsync(string userDirectory, string fileName);
-    Task<FileStream> GetFileStreamAsync(string userDirectory, string fileName);
+    Task<FileStream> GetFileStreamAsync(string? userDirectory, string fileName);
   }
 }

@@ -96,6 +96,7 @@ public class StorageService : IStorageService
 
   public async Task<FileStream> GetFileStreamAsync(string userDirectory, string fileName)
   {
+   if(string.IsNullOrEmpty(userDirectory)) throw new FileNotFoundException($"File '{fileName}' not found");
     foreach (var drive in _drives)
     {
       var filePath = Path.Combine(drive.DrivePath, userDirectory, fileName);

@@ -23,13 +23,13 @@ jobs:
           dotnet-version: '8.0.x'
           
       - name: Restore dependencies
-        run: dotnet restore JFiler
+        run: dotnet restore JFiler.sln
 
       - name: Build with dotnet
-        run: dotnet build JFiler --configuration Release /clp:ErrorsOnly
+        run: dotnet build JFiler.sln --configuration Release /clp:ErrorsOnly
 
       - name: dotnet publish
-        run: dotnet publish JFiler -c Release -r win-x64 -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -o "${{env.DOTNET_ROOT}}/release" -p:DebugType=None
+        run: dotnet publish JFiler.sln -c Release -r win-x64 -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -o "${{env.DOTNET_ROOT}}/release" -p:DebugType=None
      
       - name: Create appsettings.json in Release Directory
         shell: pwsh

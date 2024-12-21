@@ -1,4 +1,5 @@
-﻿using JFiler.Domain.Models.DB;
+﻿using JFiler.Domain.Models;
+using JFiler.Domain.Models.DB;
 using JFiler.Domain.Repository;
 using System.IO;
 
@@ -14,12 +15,12 @@ namespace JFiler.Domain.Services.Implementation
       _storageService = storageService;
     }
 
-    public async Task<string> GenerateGlobalLinkAsync(User user, string fileName, TimeSpan? expiration = null)
+    public async Task<string> GenerateGlobalLinkAsync(string userId, string fileName, TimeSpan? expiration = null)
     {
       var globalLink = new GlobalLink
       {
         Id = Guid.NewGuid().ToString(),
-        UserId = user.Id,
+        UserId = userId,
         FileName = fileName,
         ExpirationTime = expiration.HasValue ? DateTime.UtcNow.Add(expiration.Value) : DateTime.UtcNow.AddHours(12),
         IsUsed = false,
@@ -29,14 +30,15 @@ namespace JFiler.Domain.Services.Implementation
       return await _globalLinkRepository.GenerateGlobalLinkAsync(globalLink);
     }
 
-    public async Task<byte[]> GetFileFromLink(string id)
+    public async Task<GlobalLinkFileResult> GetFileFromLink(string id)
     {
+      var returnModel = new GlobalLinkFileResult();
       var link = await _globalLinkRepository.GetGlobalLinkAsync(id);
-      if (link == null) return Array.Empty<byte>();
+      if (link == null) return returnModel;
       using (var fileStream = await _storageService.GetFileStreamAsync(link.UserId, link.FileName))
       {
-        if (fileStream == null) return Array.Empty<byte>();
-        if (fileStream.Length == 0) return Array.Empty<byte>();
+        if (fileStream == null) return returnModel;
+        if (fileStream.Length == 0) return returnModel;
         fileStream.Position = 0;
         byte[] fileBytes = new byte[fileStream.Length];
 
@@ -44,7 +46,9 @@ namespace JFiler.Domain.Services.Implementation
         fileStream.Read(fileBytes, 0, (int)fileStream.Length);
 
         await _globalLinkRepository.MarkLinkAsUsedAsync(id);
-        return fileBytes;
+        returnModel.FileName = link.FileName;
+        returnModel.FileBytes = fileBytes;
+        return returnModel;
       }
     }
   }

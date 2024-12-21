@@ -1,6 +1,9 @@
 ﻿using JFiler.Domain.Builders;
+using JFiler.Domain.Mapper;
 using JFiler.Domain.Models.DB;
+using JFiler.Domain.Models.ViewModel;
 using JFiler.Domain.Repository;
+using JFiler.Domain.Repository.Implementation;
 using JFiler.Domain.Utilities;
 
 namespace JFiler.Domain.Services.Implementation
@@ -17,7 +20,7 @@ namespace JFiler.Domain.Services.Implementation
 
     public async Task<User?> Login(string username, string password)
     {
-      var user = await _userRepository.GetUserByUsernameAsync(username);
+      var user = await _userRepository.GetUserByUsername(username);
       if (user == null) return null;
 
       //check if user is locked
@@ -47,7 +50,7 @@ namespace JFiler.Domain.Services.Implementation
     }
     public async Task Delete(User user)
     {
-      await _userRepository.DeleteUserAsync(user.Id);
+      await _userRepository.DeleteUser(user.Id);
     }
 
     public async Task<User?> CreateUser(string userName, string email, string password, bool admin = false)
@@ -58,7 +61,7 @@ namespace JFiler.Domain.Services.Implementation
         .SetPassword(password)
         .SetAdmin(admin)
         .Build();
-      return await _userRepository.AddUserAsync(user);
+      return await _userRepository.AddUser(user);
     }
 
     public string? GetCurrentUserId()
@@ -70,6 +73,30 @@ namespace JFiler.Domain.Services.Implementation
         return userIdClaim?.Value;
       }
       return null;
+    }
+
+    public async Task<User?> GetCurrentUser()
+    {
+      var userId = GetCurrentUserId();
+      if (userId == null) return null;
+      var user = await _userRepository.GetUserById(userId);
+      return user;
+    }
+
+    public async Task<List<UserViewModel>> GetUsers()
+    {
+      var users = await _userRepository.GetUsers();
+      return users.Select(x => ViewModelMapper.MapEntityToViewModel(x)).ToList();
+    }
+
+    public async Task<User?> GetUserById(string id)
+    {
+      return await _userRepository.GetUserById(id);
+    }
+
+    public async Task<User?> UpdateUser(User user)
+    {
+      return await _userRepository.UpdateUser(user);
     }
   }
 }

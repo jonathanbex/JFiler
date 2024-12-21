@@ -32,13 +32,18 @@
                         </li>
                         @if (isAdmin)
                         {
-
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin</a>
                             </li>
                         }
                     </ul>
+                    <div class="d-flex justify-content-end">
+                        <form asp-action="Logout" asp-controller="Account" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger">Logout</button>
+                        </form>
+                    </div>
                 </div>
+
             </div>
         </nav>
     </header>

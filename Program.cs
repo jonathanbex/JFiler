@@ -67,9 +67,9 @@ using (var scope = app.Services.CreateScope())
   var admin = await userService.GetAdmin();
   if (admin == null)
   {
-    var adminUsername = configuration["AdminUsername"];
-    if (string.IsNullOrEmpty(adminUsername)) adminUsername = $"admin_{Guid.NewGuid().ToString().Replace("-","").Substring(0,5)}";
-    var adminPassword = configuration["AdminPassword"];
+    var adminUsername = configuration.GetValue<string>("AdminUsername");
+    if (string.IsNullOrEmpty(adminUsername)) adminUsername = $"admin_{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 5)}";
+    var adminPassword = configuration.GetValue<string>("AdminPassword");
     if (string.IsNullOrEmpty(adminPassword)) adminPassword = Guid.NewGuid().ToString();
     // Create the admin user
     var adminUser = await userService.CreateUser(adminUsername, adminUsername, adminPassword, true);

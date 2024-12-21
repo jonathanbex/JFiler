@@ -1,5 +1,6 @@
 ﻿using JFiler.Domain.Builders;
 using JFiler.Domain.Mapper;
+using JFiler.Domain.Models;
 using JFiler.Domain.Models.DB;
 using JFiler.Domain.Models.ViewModel;
 using JFiler.Domain.Repository;
@@ -18,19 +19,20 @@ namespace JFiler.Domain.Services.Implementation
       _contextAccessor = contextAccessor;
     }
 
-    public async Task<User?> Login(string username, string password)
+    public async Task<LoginModelResult> Login(string username, string password)
     {
+
       var user = await _userRepository.GetUserByUsername(username);
-      if (user == null) return null;
+      if (user == null) return new LoginModelResult();
 
       //check if user is locked
       if (user.FailedAttempts.GetValueOrDefault(0) > 4
-        && user.LastFailedAttempt != null && user.LastFailedAttempt.Value > DateTime.UtcNow.AddMinutes(-15))
+        && user.LastFailedAttempt != null && user.LastFailedAttempt.Value > DateTime.UtcNow.AddMinutes(-5))
       {
-        return null;
+        return new LoginModelResult { Locked = true };
       }
       //clear old locks
-      else if (user.LastFailedAttempt != null && user.LastFailedAttempt.Value < DateTime.UtcNow.AddMinutes(-15))
+      else if (user.LastFailedAttempt != null && user.LastFailedAttempt.Value < DateTime.UtcNow.AddMinutes(-5))
       {
         user.LastFailedAttempt = null;
         user.FailedAttempts = null;
@@ -39,10 +41,13 @@ namespace JFiler.Domain.Services.Implementation
       var hashedPass = CryptoUtility.ComputeSHA256Hash(password + user.Salt);
       if (user.PasswordHash != hashedPass)
       {
-        await _userRepository.SetFailedAttempt(user);
+        await _userRepository.SetFailedAttempts(user);
+        return new LoginModelResult { WrongPassword = true };
       }
 
-      return user;
+      await _userRepository.ResetFailedAttempts(user);
+
+      return new LoginModelResult { User = user };
     }
     public async Task<User> Logout(User user)
     {

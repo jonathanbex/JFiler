@@ -38,7 +38,7 @@ namespace JFiler.Controllers
     public async Task<IActionResult> RegisterNewUser([FromForm] CreateNewUserViewModel usr)
     {
       if (!await IsAdmin()) return BadRequest();
-      await _userService.CreateUser(usr.UserName, usr.Email, usr.Password, usr.Admin);
+      await _userService.CreateUser(usr.Username, usr.Email, usr.Password, usr.Admin);
 
       return RedirectToAction("Index");
     }

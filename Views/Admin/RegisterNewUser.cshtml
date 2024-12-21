@@ -1,0 +1,26 @@
+﻿@model CreateNewUserViewModel
+
+<h1>Register New User</h1>
+
+<form asp-action="RegisterNewUser" method="post">
+    <div class="form-group">
+        <label for="UserName">Username</label>
+        <input asp-for="Username" class="form-control" />
+        <span asp-validation-for="Username" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Email">Email</label>
+        <input asp-for="Email" class="form-control" type="email" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Password">Password</label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <div class="form-check">
+        <input asp-for="Admin" class="form-check-input" type="checkbox" />
+        <label asp-for="Admin" class="form-check-label">Is Admin</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>

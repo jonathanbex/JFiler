@@ -30,7 +30,7 @@ namespace JFiler.Domain.Repository.Implementation
     public async Task<GlobalLink?> GetGlobalLinkAsync(string id)
     {
       var db = await GetDatabaseConnectionAsync();
-      return await db.Table<GlobalLink>().FirstOrDefaultAsync(x => x.Id == id && x.IsUsed == false && x.ExpirationTime < DateTime.UtcNow);
+      return await db.Table<GlobalLink>().FirstOrDefaultAsync(x => x.Id == id && x.IsUsed == false && x.ExpirationTime > DateTime.UtcNow);
     }
 
     public async Task<bool> MarkLinkAsUsedAsync(string id)

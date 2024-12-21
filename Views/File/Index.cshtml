@@ -1,8 +1,248 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Files";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-4">
+    <!-- File Upload Section -->
+    <div class="card mb-4">
+        <div class="card-body text-center bg-light">
+            <h2 class="card-title">File Management</h2>
+            <div class="mb-3">
+                <input type="file" id="fileUpload" class="form-control" />
+            </div>
+            <button id="uploadButton" class="btn btn-success">Upload</button>
+            <div class="mt-3">
+                <progress id="progressBar" class="progress w-100" value="0" max="100"></progress>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Grid Section -->
+    <div>
+        <div class="mb-3 d-flex">
+            <input type="text" id="searchBox" class="form-control me-2" placeholder="Search files..." />
+            <button id="searchButton" class="btn btn-primary">Search</button>
+        </div>
+        <h3>Your Files</h3>
+        <div id="fileGrid" class="row gy-3"></div>
+        <nav>
+            <ul id="pagination" class="pagination justify-content-center mt-4"></ul>
+        </nav>
+    </div>
 </div>
+
+<script>
+    // State variables
+    let currentPage = 1;
+    let pageSize = 10;
+    let currentSearchTerm = '';
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        const uploadButton = document.getElementById('uploadButton');
+        const fileInput = document.getElementById('fileUpload');
+        const searchBox = document.getElementById('searchBox');
+        const searchButton = document.getElementById('searchButton');
+
+        // File Upload Logic
+        uploadButton.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (file) {
+                uploadFile(file);
+            } else {
+                alert('Please select a file to upload.');
+            }
+        });
+
+        // Search Logic
+        searchButton.addEventListener('click', executeSearch);
+
+        // Search Logic: Press Enter
+        searchBox.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission or default behavior
+                executeSearch();
+            }
+        });
+
+        // Initial Grid Load
+        loadFileGrid();
+    });
+
+    // Execute Search
+    const executeSearch = () => {
+        currentSearchTerm = document.getElementById('searchBox').value.trim();
+        currentPage = 1;
+        loadFileGrid();
+    };
+
+    // Load File Grid
+    const loadFileGrid = async () => {
+        try {
+            const response = await fetch('/File/GetFiles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    searchTerm: currentSearchTerm,
+                    page: currentPage,
+                    pageSize: pageSize,
+                }),
+            });
+
+            if (!response.ok) {
+                alert('Failed to load files.');
+                return;
+            }
+
+            const { files, totalCount } = await response.json();
+
+            // Populate file grid
+            const grid = document.getElementById('fileGrid');
+            grid.innerHTML = files
+                .map(
+                    (file) => `
+                    <div class="col-md-6 col-sm-12">
+                        <div class="card bg-light">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title text-wrap text-break">${file.fileName}</h5>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <button class="btn btn-success btn-sm mb-2" onclick="downloadFile('${file.fileName}')">Download</button>
+                                    <button class="btn btn-primary btn-sm mb-2" onclick="generateLink('${file.fileName}')">Generate Link</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteFile('${file.fileName}')">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                )
+                .join('');
+
+            // Populate pagination
+            const totalPages = Math.ceil(totalCount / pageSize);
+            document.getElementById('pagination').innerHTML = generatePagination(totalPages);
+        } catch (error) {
+            console.error('Error loading file grid:', error);
+            alert('An error occurred while loading the file grid.');
+        }
+    };
+
+    // Generate Pagination
+    const generatePagination = (totalPages) => {
+        let pages = '';
+        for (let i = 1; i <= totalPages; i++) {
+            pages += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>
+            `;
+        }
+        return pages;
+    };
+
+    // Change Page
+    const changePage = (page) => {
+        currentPage = page;
+        loadFileGrid();
+    };
+
+    // Upload File
+    const uploadFile = (file) => {
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                document.getElementById('progressBar').value = percentComplete;
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                alert('File uploaded successfully.');
+                loadFileGrid();
+            } else {
+                alert('Error uploading file.');
+            }
+        };
+
+        xhr.onerror = () => {
+            alert('An error occurred while uploading the file.');
+        };
+
+        xhr.open('POST', '/File/UploadFile');
+        xhr.send(formData);
+    };
+
+    // Delete File
+    const deleteFile = async (fileName) => {
+        if (!confirm('Are you sure you want to delete this file?')) return;
+
+        try {
+            const response = await fetch(`/File/DeleteFile?fileName=${fileName}`, { method: 'POST' });
+            if (response.ok) {
+                alert('File deleted successfully.');
+                loadFileGrid();
+            } else {
+                alert('Failed to delete file.');
+            }
+        } catch (error) {
+            console.error('Error deleting file:', error);
+            alert('An error occurred while deleting the file.');
+        }
+    };
+
+    // Generate Single-Use Link
+    const generateLink = async (fileName) => {
+        try {
+            const response = await fetch(`/File/GenerateSingleUseLink?fileName=${encodeURIComponent(fileName)}`);
+            if (response.ok) {
+                const { link } = await response.json();
+                const fullLink = `${location.origin}/File/GetFileFromSingleuseLink/?id=${link}`;
+
+                try {
+                    await navigator.clipboard.writeText(fullLink);
+                    alert('Single-Use Link copied to clipboard:\n' + fullLink);
+                } catch (error) {
+                    console.warn('Clipboard API failed, using fallback.', error);
+                    prompt('Copy the Single-Use Link:', fullLink);
+                }
+            } else {
+                alert('Failed to generate single-use link.');
+            }
+        } catch (error) {
+            console.error('Error generating link:', error);
+            alert('An error occurred while generating the single-use link.');
+        }
+    };
+
+    // Download File
+    const downloadFile = async (fileName) => {
+        try {
+            const response = await fetch(`/File/DownloadFile?fileName=${encodeURIComponent(fileName)}`, {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                alert('Failed to download file.');
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            alert('An error occurred while downloading the file.');
+        }
+    };
+</script>

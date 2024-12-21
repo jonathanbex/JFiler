@@ -27,11 +27,11 @@ namespace JFiler.Controllers
       return View();
     }
 
-    public async Task<IActionResult> UploadFile(IFormFile file, IProgress<double>? progress = null)
+    public async Task<IActionResult> UploadFile(IFormFile file)
     {
       var userId = _userService.GetCurrentUserId();
       if (userId == null) return BadRequest();
-      await _storageService.UploadFileAsync(userId, file, progress);
+      await _storageService.UploadFileAsync(userId, file);
 
       return Ok(new { message = "File uploaded successfully." });
     }
@@ -71,11 +71,11 @@ namespace JFiler.Controllers
     }
 
     [HttpPost]
-    public async Task<IActionResult> DeleteFile(string id)
+    public async Task<IActionResult> DeleteFile(string fileName)
     {
       var userId = _userService.GetCurrentUserId();
       if (userId == null) return BadRequest();
-      await _storageService.DeleteFileAsync(userId, id);
+      await _storageService.DeleteFileAsync(userId, fileName);
       return Ok();
     }
 

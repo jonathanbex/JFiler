@@ -2,27 +2,36 @@
 
 @{
     ViewData["Title"] = "Login";
-    Layout = "";
+    Layout = "_LayoutUnauth";
 }
 
-<div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
-        <h2 class="text-center mb-4">Login</h2>
-        <form asp-action="Login" asp-controller="Authentication" method="post">
+<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px; border-radius: 10px;">
+        <h2 class="text-center mb-4 text-primary">Welcome Back</h2>
+
+
+        @if (!string.IsNullOrEmpty(Model.Message))
+        {
+            <div class="alert alert-danger">
+                @Model.Message
+            </div>
+        }
+
+        <form asp-action="Login" asp-controller="Account" method="post">
             <div class="form-group mb-3">
-                <label asp-for="Username" class="form-label"></label>
+                <label asp-for="Username" class="form-label fw-semibold">Username</label>
                 <input asp-for="Username" class="form-control" placeholder="Enter your username" />
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Password" class="form-label"></label>
+                <label asp-for="Password" class="form-label fw-semibold">Password</label>
                 <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">Login</button>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary fw-bold">Login</button>
             </div>
         </form>
     </div>

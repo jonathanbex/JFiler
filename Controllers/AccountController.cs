@@ -8,17 +8,17 @@ using JFiler.Domain.Models.ViewModel;
 
 namespace JFiler.Controllers
 {
-  public class AuthenticationController : BaseController
+  public class AccountController : BaseController
   {
     IUserService _userService;
-    public AuthenticationController(IUserService userService) : base()
+    public AccountController(IUserService userService) : base()
     {
       _userService = userService;
     }
     [HttpGet]
     public async Task<IActionResult> Login()
     {
-      return View();
+      return View(new LoginViewModel());
     }
 
     [HttpPost]
@@ -26,13 +26,32 @@ namespace JFiler.Controllers
     {
       var userName = login.Username;
       var password = login.Password;
-      var loggedInUser = await _userService.Login(userName, password);
-      if (loggedInUser == null) return RedirectToAction("Login");
+      var loginResult = await _userService.Login(userName, password);
+
+      var user = loginResult.User;
+      if (user == null)
+      {
+        if (loginResult.Locked == true)
+        {
+          login.Message = "Your account is locked. Wait 5 minutes and try again";
+        }
+        else if (loginResult.WrongPassword == true)
+        {
+          login.Message = "Incorrect password. Please try again.";
+        }
+        else
+        {
+          login.Message = "Login failed. Please check your credentials.";
+        }
+
+        // Return the view with the updated model
+        return View(login);
+      }
       var claims = new List<Claim>
       {
-          new Claim(ClaimTypes.Name, loggedInUser.Username),
-          new Claim(ClaimTypes.GivenName, loggedInUser.Username),
-          new Claim("UserId", loggedInUser.Id)
+          new Claim(ClaimTypes.Name, user.Username),
+          new Claim(ClaimTypes.GivenName, user.Username),
+          new Claim("UserId", user.Id)
       };
       var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -48,6 +67,13 @@ namespace JFiler.Controllers
 
       await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
       return RedirectToAction("Index", "Home");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> LogOut()
+    {
+      await HttpContext.SignOutAsync();
+      return RedirectToAction("Login", "Account");
     }
   }
 }

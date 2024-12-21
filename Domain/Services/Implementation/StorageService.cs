@@ -1,5 +1,6 @@
 ﻿using JFiler.Domain.Models;
 using JFiler.Domain.Services;
+using Microsoft.AspNetCore.Mvc;
 
 public class StorageService : IStorageService
 {
@@ -12,9 +13,9 @@ public class StorageService : IStorageService
     if (driveConfigs == null || driveConfigs.Count == 0) throw new InvalidDataException("Missing drives lol");
     _drives = driveConfigs.Select(config => GetDriveInfo(config.DrivePath)).ToList();
   }
-
   public async Task<FileResultModel> GetFilesAsync(string userDirectory, string? searchTerm, int page = 0, int pageSize = 30)
   {
+    if (page > 0) page = page - 1;
     var files = new List<FileModel>();
 
     foreach (var drive in _drives)
@@ -44,13 +45,13 @@ public class StorageService : IStorageService
       files = files.Where(file => file.FileName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
     }
     var count = files.Count();
- 
+
     files = files
         .Skip(page * pageSize)
         .Take(pageSize)
         .ToList();
 
-    
+
     return new FileResultModel { Files = files, TotalCount = count };
   }
 
@@ -94,12 +95,12 @@ public class StorageService : IStorageService
 
       if (File.Exists(filePath))
       {
-        File.Delete(filePath);
+
 
         // Update used space
         var fileInfo = new FileInfo(filePath);
         drive.FreeSpace -= fileInfo.Length;
-
+        File.Delete(filePath);
         return;
       }
     }

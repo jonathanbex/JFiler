@@ -2,7 +2,37 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-primary">Welcome to Your File Manager</h1>
+        <p class="lead">
+            Manage your files with ease and share them securely with your friends.
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-dark">Manage Your Files</h5>
+                    <p class="card-text">
+                        Click on <strong>File</strong> in the navigation bar to upload, view, and manage your files efficiently.
+                    </p>
+                    <a class="btn btn-primary" asp-controller="File" asp-action="Index">Go to Files</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-dark">Share Files Securely</h5>
+                    <p class="card-text">
+                        Generate a one-time global link to securely share a file with your friend. It's fast and easy.
+                    </p>
+                    <a class="btn btn-primary" asp-controller="File" asp-action="Index">Share a Link from your files</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

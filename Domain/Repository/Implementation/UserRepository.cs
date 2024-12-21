@@ -67,13 +67,23 @@ namespace JFiler.Domain.Repository.Implementation
       return result > 0;
     }
 
-    public async Task SetFailedAttempt(User user)
+    public async Task SetFailedAttempts(User user)
     {
       user.FailedAttempts = user.FailedAttempts.GetValueOrDefault(0) + 1;
       user.LastFailedAttempt = DateTime.UtcNow;
       var db = await GetDatabaseConnectionAsync();
       await db.UpdateAsync(user);
     }
+
+
+    public async Task ResetFailedAttempts(User user)
+    {
+      user.FailedAttempts = null;
+      user.LastFailedAttempt = null;
+      var db = await GetDatabaseConnectionAsync();
+      await db.UpdateAsync(user);
+    }
+
 
     public async Task<List<User>> GetUsers()
     {

@@ -1,4 +1,5 @@
-﻿using JFiler.Domain.Models;
+﻿using JFiler.Domain.Helpers;
+using JFiler.Domain.Models;
 using JFiler.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,12 +7,14 @@ public class StorageService : IStorageService
 {
   private readonly List<DriveInfoModel> _drives;
   private const int _bufferSize = 81920;
+  IConfiguration _configuration;
   public StorageService(IConfiguration configuration)
   {
+    _configuration = configuration;
     // Load drives from configuration
     var driveConfigs = configuration.GetSection("StorageSettings:Drives").Get<List<DriveConfig>>();
     if (driveConfigs == null || driveConfigs.Count == 0) throw new InvalidDataException("Missing drives lol");
-    _drives = driveConfigs.Select(config => GetDriveInfo(config.DrivePath)).ToList();
+    _drives = driveConfigs.Select(config => ValidateAndGetDriveInfo(config.DrivePath)).Where(info => info != null).ToList();
   }
   public async Task<FileResultModel> GetFilesAsync(string userDirectory, string? searchTerm, int page = 0, int pageSize = 30)
   {
@@ -135,9 +138,15 @@ public class StorageService : IStorageService
     return availableDrive.DrivePath;
   }
 
-  private DriveInfoModel GetDriveInfo(string drivePath)
+  private DriveInfoModel ValidateAndGetDriveInfo(string drivePath)
   {
-    var drive = new DriveInfo(drivePath); // Get the root of the drive
+    var drive = new DriveInfo(drivePath);
+    if (!drive.IsReady)
+    {
+      //drive does not exist or isnt ready
+      return null;
+    }
+
     return new DriveInfoModel
     {
       DrivePath = drivePath,
@@ -145,4 +154,43 @@ public class StorageService : IStorageService
       FreeSpace = drive.TotalFreeSpace
     };
   }
+
+  public void RegisterNewDrive(string drivePath)
+  {
+    if (_drives.Any(d => d.DrivePath.Equals(drivePath, StringComparison.OrdinalIgnoreCase)))
+      throw new InvalidOperationException($"Drive {drivePath} is already registered.");
+
+    var driveInfo = ValidateAndGetDriveInfo(drivePath);
+    if (driveInfo == null)
+      throw new InvalidDataException($"Drive {drivePath} is invalid or inaccessible.");
+
+    _drives.Add(driveInfo);
+    SaveDrives();
+  }
+
+  public void RemoveDrive(string drivePath)
+  {
+    var entry = _drives.FirstOrDefault(d => d.DrivePath.Equals(drivePath, StringComparison.OrdinalIgnoreCase));
+    if (entry == null)
+      throw new InvalidOperationException($"Drive {drivePath} isn't registered.");
+    _drives.Remove(entry);
+    SaveDrives();
+
+  }
+  private void SaveDrives()
+  {
+    // Transform _drives into a format suitable for appsettings.json
+    var drivesAsObjects = _drives
+        .Select(drive => new Dictionary<string, object>
+        {
+            { "DrivePath", drive.DrivePath }
+        })
+        .ToList();
+
+    JsonConfigurationHelper.UpdateAppSettings("StorageSettings:Drives", drivesAsObjects);
+  }
+
+  public IReadOnlyList<DriveInfoModel> GetDrives() => _drives.AsReadOnly();
+
+
 }

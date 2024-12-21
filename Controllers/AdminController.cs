@@ -14,10 +14,12 @@ namespace JFiler.Controllers
   {
     private readonly ILogger<AdminController> _logger;
     private IUserService _userService;
-    public AdminController(ILogger<AdminController> logger, IUserService userService) : base()
+    private IStorageService _storageService;
+    public AdminController(ILogger<AdminController> logger, IUserService userService, IStorageService storageService) : base()
     {
       _logger = logger;
       _userService = userService;
+      _storageService = storageService;
     }
 
     public async Task<IActionResult> Index()
@@ -88,6 +90,45 @@ namespace JFiler.Controllers
       var user = await _userService.GetCurrentUser();
       if (user == null || !user.Admin.GetValueOrDefault(false)) return false;
       return true;
+    }
+
+
+    [HttpGet]
+    public IActionResult Drives()
+    {
+      var drives = _storageService.GetDrives();
+      return View(drives);
+    }
+
+    [HttpPost]
+    public IActionResult AddDrive([FromForm] AddDriveRequest request)
+    {
+      if (string.IsNullOrWhiteSpace(request.DrivePath))
+        return BadRequest("DrivePath is required.");
+
+      try
+      {
+        _storageService.RegisterNewDrive(request.DrivePath);
+        return RedirectToAction("Drives");
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(ex.Message);
+      }
+    }
+
+    [HttpPost]
+    public IActionResult RemoveDrive(string drivePath)
+    {
+      try
+      {
+        _storageService.RemoveDrive(drivePath);
+        return RedirectToAction("Drives");
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(ex.Message);
+      }
     }
   }
 }

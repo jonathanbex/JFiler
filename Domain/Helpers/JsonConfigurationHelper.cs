@@ -8,6 +8,29 @@ namespace JFiler.Domain.Helpers
 {
   public static class JsonConfigurationHelper
   {
+    public static void UpdateAppSettings(string key, object value)
+    {
+      const string filePath = "appsettings.json";
+      IDictionary<string, object> jsonObject;
+
+      // Ensure the configuration file exists or create a new object
+      if (!File.Exists(filePath))
+      {
+        Console.WriteLine($"Configuration file '{filePath}' does not exist. Creating a new one.");
+        jsonObject = new Dictionary<string, object>();
+      }
+      else
+      {
+        jsonObject = LoadJsonFile(filePath);
+      }
+
+      // Update the JSON object with the provided key and value
+      UpdateJsonValue(jsonObject, key.Split(':'), value);
+
+      // Save updated JSON back to the file
+      SaveJsonToFile(filePath, jsonObject);
+    }
+
     public static void UpdateAppSettings(string key, string value)
     {
       const string filePath = "appsettings.json";
@@ -72,7 +95,7 @@ namespace JFiler.Domain.Helpers
       return jsonObject;
     }
 
-    private static void UpdateJsonValue(IDictionary<string, object> jsonObject, string[] keys, string value)
+    private static void UpdateJsonValue(IDictionary<string, object> jsonObject, string[] keys, object value)
     {
       var current = jsonObject;
 
@@ -94,7 +117,19 @@ namespace JFiler.Domain.Helpers
       }
 
       //^1 is last element of array ^2 is second to last etc
-      current[keys[^1]] = value;
+      // Handle updating a value that can be a section (e.g., object, array, or single value)
+      if (value is IEnumerable<object> enumerableValue)
+      {
+        current[keys[^1]] = enumerableValue.ToList(); // Serialize array-like objects as a List
+      }
+      else if (value is IDictionary<string, object> dictionaryValue)
+      {
+        current[keys[^1]] = dictionaryValue; // Assign nested objects as dictionaries
+      }
+      else
+      {
+        current[keys[^1]] = value?.ToString(); // For strings or other primitives
+      }
     }
 
     private static void SaveJsonToFile(string filePath, IDictionary<string, object> jsonObject)

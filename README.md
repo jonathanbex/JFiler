@@ -36,6 +36,8 @@ Before running the application, configure the following settings in the `appsett
 ### Access the Admin Interface
 Log in using the admin username and password specified in the `appsettings.json` file.
 
+You can change the username nad password but a restart of the website is required for that to take effect
+
 ### Drive Management
 - **View Drives**: Displays a list of all configured drives with their total and free space.
 - **Add Drives**: Use the "Add Drive" form to add new drives by specifying the drive path.

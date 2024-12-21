@@ -24,12 +24,13 @@ namespace JFiler.Domain.Helpers
         jsonObject = LoadJsonFile(filePath);
       }
 
-      // Update the JSON object with the provided key and value
+      // Update only the specified section or key of the JSON object
       UpdateJsonValue(jsonObject, key.Split(':'), value);
 
       // Save updated JSON back to the file
       SaveJsonToFile(filePath, jsonObject);
     }
+
 
     public static void UpdateAppSettings(string key, string value)
     {
@@ -116,19 +117,21 @@ namespace JFiler.Domain.Helpers
         }
       }
 
-      //^1 is last element of array ^2 is second to last etc
-      // Handle updating a value that can be a section (e.g., object, array, or single value)
-      if (value is IEnumerable<object> enumerableValue)
+      // Update the targeted key or section with the new value
+      if (value is IDictionary<string, object> dictionaryValue)
       {
-        current[keys[^1]] = enumerableValue.ToList(); // Serialize array-like objects as a List
+        // If the value is a nested object (e.g., for sections)
+        current[keys[^1]] = dictionaryValue;
       }
-      else if (value is IDictionary<string, object> dictionaryValue)
+      else if (value is IEnumerable<object> listValue)
       {
-        current[keys[^1]] = dictionaryValue; // Assign nested objects as dictionaries
+        // If the value is an array or list
+        current[keys[^1]] = listValue.ToList();
       }
       else
       {
-        current[keys[^1]] = value?.ToString(); // For strings or other primitives
+        // For single values (e.g., strings, numbers)
+        current[keys[^1]] = value?.ToString();
       }
     }
 

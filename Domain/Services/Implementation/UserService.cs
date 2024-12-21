@@ -98,5 +98,10 @@ namespace JFiler.Domain.Services.Implementation
     {
       return await _userRepository.UpdateUser(user);
     }
+
+    public async Task<User?> GetAdmin()
+    {
+      return await _userRepository.GetAdmin();
+    }
   }
 }

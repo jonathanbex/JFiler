@@ -11,5 +11,6 @@ namespace JFiler.Domain.Repository
     public Task<bool> DeleteUser(string userId);
     public Task SetFailedAttempt(User user);
     public Task<List<User>> GetUsers();
+    public Task<User?> GetAdmin();
   }
 }

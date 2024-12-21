@@ -80,6 +80,12 @@ namespace JFiler.Domain.Repository.Implementation
       var db = await GetDatabaseConnectionAsync();
       return await db.Table<User>().ToListAsync();
     }
+
+    public async Task<User?> GetAdmin()
+    {
+      var db = await GetDatabaseConnectionAsync();
+      return await db.Table<User>().FirstOrDefaultAsync(x => x.Admin == true);
+    }
   }
 
 }

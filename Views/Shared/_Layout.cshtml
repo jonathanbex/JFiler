@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@using JFiler.Domain.Services;
+@inject JFiler.Domain.Services.IUserService _userService
+@{
+    bool isAdmin = (await _userService.GetCurrentUser())?.Admin ?? false;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -23,8 +28,15 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="File" asp-action="Index">Files</a>
                         </li>
+                        @if (isAdmin)
+                        {
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

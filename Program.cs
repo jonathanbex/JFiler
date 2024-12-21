@@ -1,6 +1,8 @@
+using JFiler.Domain.Helpers;
 using JFiler.Domain.Repository;
 using JFiler.Domain.Repository.Implementation;
 using JFiler.Domain.Services;
+using JFiler.Domain.Services.Implementation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,9 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton<IStorageService, StorageService>();
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IGlobalLinkRepository, GlobalLinkRepository>();
+builder.Services.AddSingleton<IStorageService, StorageService>();
+builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<IGlobalLinkService, GlobalLinkService>();
 
 builder.Services.AddSession(options =>
 {
@@ -54,5 +58,26 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Create an admin user if not exists
+using (var scope = app.Services.CreateScope())
+{
+  var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+  var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+  var admin = await userService.GetAdmin();
+  if (admin == null)
+  {
+    var adminUsername = configuration["AdminUsername"];
+    if (string.IsNullOrEmpty(adminUsername)) adminUsername = $"admin_{Guid.NewGuid().ToString().Replace("-","").Substring(0,5)}";
+    var adminPassword = configuration["AdminPassword"];
+    if (string.IsNullOrEmpty(adminPassword)) adminPassword = Guid.NewGuid().ToString();
+    // Create the admin user
+    var adminUser = await userService.CreateUser(adminUsername, adminUsername, adminPassword, true);
+
+    JsonConfigurationHelper.UpdateAppSettings("AdminUsername", adminUsername);
+    JsonConfigurationHelper.UpdateAppSettings("AdminPassword", adminPassword);
+
+  }
+}
 
 app.Run();

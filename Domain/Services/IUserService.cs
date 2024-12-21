@@ -14,5 +14,6 @@ namespace JFiler.Domain.Services
     public Task<User?> GetCurrentUser();
     public Task<List<UserViewModel>> GetUsers();
     public Task<User?> GetUserById(string id);
+    public Task<User?> GetAdmin();
   }
 }

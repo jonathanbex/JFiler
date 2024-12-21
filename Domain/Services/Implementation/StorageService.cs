@@ -38,13 +38,13 @@ public class StorageService : IStorageService
       files.AddRange(driveFiles);
     }
 
-    // Filter by search term if provided
+
     if (!string.IsNullOrEmpty(searchTerm))
     {
       files = files.Where(file => file.FileName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
     }
     var count = files.Count();
-    // Apply pagination
+ 
     files = files
         .Skip(page * pageSize)
         .Take(pageSize)

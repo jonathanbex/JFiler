@@ -93,6 +93,7 @@ namespace JFiler.Domain.Helpers
         }
       }
 
+      //^1 is last element of array ^2 is second to last etc
       current[keys[^1]] = value;
     }
 

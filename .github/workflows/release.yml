@@ -1,0 +1,78 @@
+name: JFiler Release CI/CD
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+  
+permissions:
+  contents: write  # Grants the necessary permission to create and upload releases
+  
+jobs:
+  build_and_release:
+    runs-on: windows-latest
+    if: "contains(github.event.head_commit.message, '-release')"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+          
+      - name: Restore dependencies
+        run: dotnet restore JFiler
+
+      - name: Build with dotnet
+        run: dotnet build JFiler --configuration Release /clp:ErrorsOnly
+
+      - name: dotnet publish
+        run: dotnet publish JFiler -c Release -r win-x64 -p:PublishSingleFile=true -p:IncludeAllContentForSelfExtract=true -o "${{env.DOTNET_ROOT}}/release" -p:DebugType=None
+     
+      - name: Create appsettings.json in Release Directory
+        shell: pwsh
+        run: |
+          $jsonContent = @'
+          {
+            "StorageSettings": {
+              "Drives": [
+                { "DrivePath": "C:\\Nas" },
+                ]
+            }
+          }
+          '@
+          $jsonContent | Out-File -FilePath "${{env.DOTNET_ROOT}}/release/appsettings.json" -Encoding utf8
+          
+      - name: Set Initial Release Date and Generate GUID
+        id: set_initial_release_date
+        shell: pwsh
+        run: |
+          $releaseDate = Get-Date -Format 'yyyyMMdd'
+          $guid = [guid]::NewGuid().ToString('N').Substring(0, 8)  # Generate GUID without hyphens
+          $releaseTag = "$releaseDate-$guid"
+          
+          echo "RELEASE_TAG=$releaseTag" >> $env:GITHUB_ENV
+          echo "RELEASE_NAME=Release $releaseTag" >> $env:GITHUB_ENV
+
+      - name: Create GitHub Release with gh CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          gh release create "$env:RELEASE_TAG" --repo="$env:GITHUB_REPOSITORY" --title="$env:RELEASE_TAG" --generate-notes
+
+      - name: Zip Release Assets
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "${{env.DOTNET_ROOT}}/release/*" -DestinationPath "${{env.DOTNET_ROOT}}/release/JDiscordBot_${{ env.RELEASE_TAG }}.zip"
+
+      - name: Upload Release Asset with gh CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          gh release upload "$env:RELEASE_TAG" "${{env.DOTNET_ROOT}}/release/JDiscordBot_${{ env.RELEASE_TAG }}.zip" --repo="$env:GITHUB_REPOSITORY"

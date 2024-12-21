@@ -8,5 +8,6 @@ namespace JFiler.Domain.Services
     public Task<User> Logout(User user);
     public Task Delete(User user);
     public Task<User?> CreateUser(string userName,string email, string password, bool admin = false);
+    public string? GetCurrentUserId();
   }
 }

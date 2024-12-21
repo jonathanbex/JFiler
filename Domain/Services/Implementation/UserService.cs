@@ -8,9 +8,11 @@ namespace JFiler.Domain.Services.Implementation
   public class UserService : IUserService
   {
     IUserRepository _userRepository;
-    public UserService(IUserRepository userRepository)
+    IHttpContextAccessor _contextAccessor;
+    public UserService(IUserRepository userRepository, IHttpContextAccessor contextAccessor)
     {
       _userRepository = userRepository;
+      _contextAccessor = contextAccessor;
     }
 
     public async Task<User?> Login(string username, string password)
@@ -57,6 +59,17 @@ namespace JFiler.Domain.Services.Implementation
         .SetAdmin(admin)
         .Build();
       return await _userRepository.AddUserAsync(user);
+    }
+
+    public string? GetCurrentUserId()
+    {
+      var user = _contextAccessor.HttpContext?.User;
+      if (user?.Identity?.IsAuthenticated ?? false)
+      {
+        var userIdClaim = user.FindFirst("UserId");
+        return userIdClaim?.Value;
+      }
+      return null;
     }
   }
 }

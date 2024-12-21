@@ -13,7 +13,7 @@ public class StorageService : IStorageService
     _drives = driveConfigs.Select(config => GetDriveInfo(config.DrivePath)).ToList();
   }
 
-  public async Task<IEnumerable<FileModel>> GetFilesAsync(string userDirectory)
+  public async Task<FileResultModel> GetFilesAsync(string userDirectory, string? searchTerm, int page = 0, int pageSize = 30)
   {
     var files = new List<FileModel>();
 
@@ -38,7 +38,20 @@ public class StorageService : IStorageService
       files.AddRange(driveFiles);
     }
 
-    return files;
+    // Filter by search term if provided
+    if (!string.IsNullOrEmpty(searchTerm))
+    {
+      files = files.Where(file => file.FileName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+    var count = files.Count();
+    // Apply pagination
+    files = files
+        .Skip(page * pageSize)
+        .Take(pageSize)
+        .ToList();
+
+    var result = await Task.FromResult(files);
+    return new FileResultModel { Files = files, TotalCount = count };
   }
 
   public async Task UploadFileAsync(string userDirectory, IFormFile file, IProgress<double>? progress = null)
@@ -96,7 +109,7 @@ public class StorageService : IStorageService
 
   public async Task<FileStream> GetFileStreamAsync(string userDirectory, string fileName)
   {
-   if(string.IsNullOrEmpty(userDirectory)) throw new FileNotFoundException($"File '{fileName}' not found");
+    if (string.IsNullOrEmpty(userDirectory)) throw new FileNotFoundException($"File '{fileName}' not found");
     foreach (var drive in _drives)
     {
       var filePath = Path.Combine(drive.DrivePath, userDirectory, fileName);

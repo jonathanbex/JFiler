@@ -54,8 +54,8 @@ You can directly edit the `appsettings.json` file to configure your settings. Fo
   "AdminPassword": "password",
   "StorageSettings": {
     "Drives": [
-      { "DrivePath": "C:\\" },
-      { "DrivePath": "D:\\" }
+      { "DrivePath": "C:\\Nas" },
+      { "DrivePath": "D:\\Nas" }
     ]
   }
 }

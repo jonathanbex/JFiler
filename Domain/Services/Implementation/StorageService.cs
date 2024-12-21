@@ -168,6 +168,7 @@ public class StorageService : IStorageService
     SaveDrives();
   }
 
+
   public void RemoveDrive(string drivePath)
   {
     var entry = _drives.FirstOrDefault(d => d.DrivePath.Equals(drivePath, StringComparison.OrdinalIgnoreCase));

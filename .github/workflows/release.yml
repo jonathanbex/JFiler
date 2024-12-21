@@ -75,4 +75,4 @@ jobs:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          gh release upload "$env:RELEASE_TAG" "${{env.DOTNET_ROOT}}/release/JDiscordBot_${{ env.RELEASE_TAG }}.zip" --repo="$env:GITHUB_REPOSITORY"
+          gh release upload "$env:RELEASE_TAG" "${{env.DOTNET_ROOT}}/release/JFiler_${{ env.RELEASE_TAG }}.zip" --repo="$env:GITHUB_REPOSITORY"

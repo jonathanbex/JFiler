@@ -38,7 +38,7 @@ namespace JFiler.Domain.Repository.Implementation
     public async Task<User> UpdateUser(User user)
     {
       var db = await GetDatabaseConnectionAsync();
-      var existingUser = await db.Table<User>().FirstOrDefaultAsync(x => x.Username == user.Username);
+      var existingUser = await db.Table<User>().FirstOrDefaultAsync(x => x.Id == user.Id);
 
       if (existingUser == null)
       {

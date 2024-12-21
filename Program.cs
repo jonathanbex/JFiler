@@ -1,9 +1,12 @@
 using JFiler.Domain.Helpers;
+using JFiler.Domain.Models.DB;
 using JFiler.Domain.Repository;
 using JFiler.Domain.Repository.Implementation;
 using JFiler.Domain.Services;
 using JFiler.Domain.Services.Implementation;
+using JFiler.Domain.Utilities;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,18 +68,35 @@ using (var scope = app.Services.CreateScope())
   var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
   var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
   var admin = await userService.GetAdmin();
+  var adminUsername = configuration.GetValue<string>("AdminUsername");
+  if (string.IsNullOrEmpty(adminUsername)) adminUsername = $"admin_{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 5)}";
+  var adminPassword = configuration.GetValue<string>("AdminPassword");
+  if (string.IsNullOrEmpty(adminPassword)) adminPassword = Guid.NewGuid().ToString();
+
   if (admin == null)
   {
-    var adminUsername = configuration.GetValue<string>("AdminUsername");
-    if (string.IsNullOrEmpty(adminUsername)) adminUsername = $"admin_{Guid.NewGuid().ToString().Replace("-", "").Substring(0, 5)}";
-    var adminPassword = configuration.GetValue<string>("AdminPassword");
-    if (string.IsNullOrEmpty(adminPassword)) adminPassword = Guid.NewGuid().ToString();
+
     // Create the admin user
     var adminUser = await userService.CreateUser(adminUsername, adminUsername, adminPassword, true);
 
     JsonConfigurationHelper.UpdateAppSettings("AdminUsername", adminUsername);
     JsonConfigurationHelper.UpdateAppSettings("AdminPassword", adminPassword);
 
+  }
+  else
+  {
+
+    // update admin from appSettings
+    var salt = CryptoUtility.GetSalt();
+    var hashedPassword = CryptoUtility.ComputeSHA256Hash(adminPassword + salt);
+    admin.Username = adminUsername;
+    admin.PasswordHash = hashedPassword;
+    admin.Salt = salt;
+
+    await userService.UpdateUser(admin);
+
+    JsonConfigurationHelper.UpdateAppSettings("AdminUsername", adminUsername);
+    JsonConfigurationHelper.UpdateAppSettings("AdminPassword", adminPassword);
   }
 }
 

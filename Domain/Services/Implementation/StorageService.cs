@@ -13,7 +13,7 @@ public class StorageService : IStorageService
     _configuration = configuration;
     // Load drives from configuration
     var driveConfigs = configuration.GetSection("StorageSettings:Drives").Get<List<DriveConfig>>();
-    if (driveConfigs == null || driveConfigs.Count == 0) throw new InvalidDataException("Missing drives lol");
+    if (driveConfigs == null || driveConfigs.Count == 0) return;
     _drives = driveConfigs.Select(config => ValidateAndGetDriveInfo(config.DrivePath)).Where(info => info != null).ToList();
   }
   public async Task<FileResultModel> GetFilesAsync(string userDirectory, string? searchTerm, int page = 0, int pageSize = 30)

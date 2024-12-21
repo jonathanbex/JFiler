@@ -85,15 +85,25 @@ namespace JFiler.Domain.Helpers
 
       foreach (var prop in document.RootElement.EnumerateObject())
       {
-        jsonObject[prop.Name] = prop.Value.ValueKind switch
-        {
-          JsonValueKind.Object => JsonDocumentToJsonObject(JsonDocument.Parse(prop.Value.GetRawText())),
-          JsonValueKind.String => prop.Value.GetString(),
-          _ => prop.Value.ToString()
-        };
+        jsonObject[prop.Name] = ConvertJsonElement(prop.Value);
       }
 
       return jsonObject;
+    }
+
+    private static object ConvertJsonElement(JsonElement element)
+    {
+      return element.ValueKind switch
+      {
+        JsonValueKind.Object => JsonDocumentToJsonObject(JsonDocument.Parse(element.GetRawText())), // Recursively parse objects
+        JsonValueKind.Array => element.EnumerateArray().Select(ConvertJsonElement).ToList(),        // Recursively parse arrays
+        JsonValueKind.String => element.GetString(),                                               // Handle strings
+        JsonValueKind.Number => element.TryGetInt64(out var l) ? l : element.GetDouble(),          // Handle numbers
+        JsonValueKind.True => true,                                                                // Handle boolean true
+        JsonValueKind.False => false,                                                              // Handle boolean false
+        JsonValueKind.Null => null,                                                                // Handle null values
+        _ => element.GetRawText()                                                                  // Fallback for anything unexpected
+      };
     }
 
     private static void UpdateJsonValue(IDictionary<string, object> jsonObject, string[] keys, object value)

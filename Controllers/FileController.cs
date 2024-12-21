@@ -13,7 +13,7 @@ namespace JFiler.Controllers
     private readonly ILogger<FileController> _logger;
     private IStorageService _storageService;
     private IUserService _userService;
-    IGlobalLinkService _globalLinkService;
+    private IGlobalLinkService _globalLinkService;
     public FileController(ILogger<FileController> logger, IStorageService storageService, IUserService userService, IGlobalLinkService globalLinkService) : base()
     {
       _logger = logger;

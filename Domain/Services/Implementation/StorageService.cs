@@ -50,7 +50,7 @@ public class StorageService : IStorageService
         .Take(pageSize)
         .ToList();
 
-    var result = await Task.FromResult(files);
+    
     return new FileResultModel { Files = files, TotalCount = count };
   }
 
